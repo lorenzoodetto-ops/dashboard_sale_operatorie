@@ -44,7 +44,7 @@ const htmlContent = `
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1e1e; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
         .btn-login { background: #4facfe; color: white; border: none; padding: 15px; width: 100%; max-width: 300px; margin: 10px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; touch-action: manipulation;}
         .room-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; width: 100%; max-width: 400px;}
-        .btn-room { background: #333; border: 2px solid #4facfe; color: white; padding: 20px 10px; font-size: 1.3em; border-radius: 8px; cursor: pointer; touch-action: manipulation;}
+        .btn-room { background: #333; border: 2px solid #4facfe; color: white; padding: 20px 10px; font-size: 1.8em; border-radius: 8px; cursor: pointer; touch-action: manipulation;}
         
         #pin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
         .pin-box { background: #2b2b2b; padding: 25px; border-radius: 10px; text-align: center; border: 2px solid #4facfe; width: 90%; max-width: 320px; box-sizing: border-box;}
@@ -190,8 +190,8 @@ const htmlContent = `
                 const tr = document.createElement('tr');
                 const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-size: 0.8em; font-style: italic;">Assente</span>';
                 
-                // Cella Sala/Nurse
-                tr.innerHTML += \`<td><div style="font-size: 1.2em; font-weight: bold;">\${room}</div><div style="font-size: 0.9em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
+                // Cella Sala/Nurse - Font della Sala notevolmente ingrandito
+                tr.innerHTML += \`<td><div style="font-size: 1.8em; font-weight: bold;">Sala \${room}</div><div style="font-size: 1.1em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
                 
                 // Bottone Intervento
                 const intClass = s.inProgress ? 'bg-green' : 'bg-red';
