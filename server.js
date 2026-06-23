@@ -14,7 +14,7 @@ const htmlContent = `
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Status Sale Operatorie</title>
     <style>
-        /* Ottimizzazioni Mobile */
+        /* Ottimizzazioni Mobile e TV */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1e1e1e; color: white; margin: 0; padding: 10px; user-select: none; -webkit-user-select: none; }
         h1 { text-align: center; color: #4facfe; font-size: 1.5em; margin-bottom: 5px;}
         
@@ -24,23 +24,23 @@ const htmlContent = `
         .dot-green { background-color: #4caf50; box-shadow: 0 0 8px #4caf50;}
         .dot-red { background-color: #f44336; box-shadow: 0 0 8px #f44336;}
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #2b2b2b; }
-        th, td { padding: 10px 5px; text-align: center; border: 1px solid #444; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; background-color: #2b2b2b; }
+        th, td { padding: 6px 5px; text-align: center; border: 1px solid #444; } /* Padding ridotto per recuperare spazio verticale */
         th { background-color: #333; font-size: 1em; }
         
-        /* Pulsanti Nativi per Mobile */
-        .action-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; touch-action: manipulation; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+        /* Pulsanti Nativi per Mobile - Altezze ridotte per schermi TV */
+        .action-btn { width: 100%; height: 45px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; touch-action: manipulation; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
         .action-btn:active { transform: scale(0.95); }
-        .readonly-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0.9; }
+        .readonly-btn { width: 100%; height: 45px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0.9; }
         
         .bg-red { background-color: #d32f2f; color: white; }
         .bg-green { background-color: #388e3c; color: white; }
         .bg-dark { background-color: #444; color: #888; border: 1px solid #555; }
         
-        /* Font grandezze Timer */
-        .text-green { color: #4caf50; font-weight: bold; font-size: 2.2em;}
-        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 2.2em;}
-        .text-red { color: #f44336; font-weight: bold; font-size: 2.2em;}
+        /* Font grandezze Timer leggermente ridotte */
+        .text-green { color: #4caf50; font-weight: bold; font-size: 2em;}
+        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 2em;}
+        .text-red { color: #f44336; font-weight: bold; font-size: 2em;}
         
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1e1e; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
         .btn-login { background: #4facfe; color: white; border: none; padding: 15px; width: 100%; max-width: 300px; margin: 10px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; touch-action: manipulation;}
@@ -96,9 +96,11 @@ const htmlContent = `
 
     <!-- Dashboard Principale -->
     <div id="main-content" style="display: none;">
-        <h1 id="main-title">Status Sale</h1>
-        <!-- Aggiunto display Data e Ora -->
-        <div id="datetime-display" style="text-align: center; color: #aaa; font-size: 1.1em; margin-bottom: 15px; font-weight: bold;"></div>
+        <!-- Header con Flexbox per avere Titolo e Data sulla stessa riga -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #4facfe; padding-bottom: 5px;">
+            <h1 id="main-title" style="margin: 0; font-size: 1.6em; text-align: left;">Status Sale</h1>
+            <div id="datetime-display" style="color: #aaa; font-size: 1.2em; font-weight: bold;"></div>
+        </div>
         
         <table id="main-table">
             <thead>
@@ -141,7 +143,7 @@ const htmlContent = `
             }
         }
         setInterval(updateClock, 1000);
-        updateClock(); // Chiama subito per evitare il secondo di ritardo
+        updateClock();
 
         // Gestione indicatore connessione
         socket.on('connect', () => {
@@ -201,7 +203,6 @@ const htmlContent = `
         function confirmTimer() {
             const mins = parseInt(document.getElementById('timer-input').value);
             if (!isNaN(mins)) {
-                // Invia i minuti convertiti in secondi al server
                 socket.emit('action', { room: pendingTimerRoom, action: 'setTimer', value: mins * 60 });
                 closeTimerModal();
             }
@@ -247,8 +248,8 @@ const htmlContent = `
                 const tr = document.createElement('tr');
                 const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-size: 0.8em; font-style: italic;">Assente</span>';
                 
-                // Cella Sala/Nurse
-                tr.innerHTML += \`<td><div style="font-size: 1.8em; font-weight: bold;">Sala \${room}</div><div style="font-size: 1.1em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
+                // Cella Sala/Nurse - Font proporzionati
+                tr.innerHTML += \`<td><div style="font-size: 1.6em; font-weight: bold;">Sala \${room}</div><div style="font-size: 1em; color: #4facfe; margin-top: 2px;">\${nurseNameDisplay}</div></td>\`;
                 
                 // Bottone Intervento
                 const intClass = s.inProgress ? 'bg-green' : 'bg-red';
@@ -262,17 +263,15 @@ const htmlContent = `
                 // Cella Timer
                 if (s.inProgress || s.timerValue === 3600) {
                     if (isReadonly) {
-                        tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2.2em;">--:--</div></td>\`;
+                        tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2em;">--:--</div></td>\`;
                     } else {
-                        // Diventa cliccabile
-                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="font-size: 2.2em; border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')">--:--</button></td>\`;
+                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="font-size: 2em; border: 1px solid #555;" onclick="openTimerModal('\${room}')">--:--</button></td>\`;
                     }
                 } else {
                     if (isReadonly) {
                         tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
                     } else {
-                        // Diventa cliccabile
-                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')"><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></button></td>\`;
+                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="border: 1px solid #555;" onclick="openTimerModal('\${room}')"><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></button></td>\`;
                     }
                 }
                 
@@ -338,7 +337,7 @@ io.on('connection', (socket) => {
             roomsState[room].nurse = value;
         } else if (action === 'setTimer') {
             roomsState[room].timerValue = value;
-            roomsState[room].inProgress = false; // Forza l'inizio del countdown se settato manualmente
+            roomsState[room].inProgress = false;
         }
         io.emit('updateState', roomsState);
     });
