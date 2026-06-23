@@ -96,10 +96,10 @@ const htmlContent = `
 
     <!-- Dashboard Principale -->
     <div id="main-content" style="display: none;">
-        <!-- Header con Flexbox per avere Titolo e Data sulla stessa riga -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #4facfe; padding-bottom: 5px;">
-            <h1 id="main-title" style="margin: 0; font-size: 1.6em; text-align: left;">Status Sale</h1>
-            <div id="datetime-display" style="color: #aaa; font-size: 1.2em; font-weight: bold;"></div>
+        <!-- Header con Titolo e Data centrati -->
+        <div style="text-align: center; margin-bottom: 10px; border-bottom: 1px solid #4facfe; padding-bottom: 10px;">
+            <div id="datetime-display" style="color: #aaa; font-size: 1.2em; font-weight: bold; margin-bottom: 5px;"></div>
+            <h1 id="main-title" style="margin: 0; font-size: 1.6em; color: #4facfe;">Status Sale</h1>
         </div>
         
         <table id="main-table">
