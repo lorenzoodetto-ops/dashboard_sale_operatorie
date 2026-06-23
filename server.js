@@ -14,7 +14,7 @@ const htmlContent = `
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Status Sale Operatorie</title>
     <style>
-        /* Ottimizzazioni Mobile: Niente zoom accidentale, niente selezione testo */
+        /* Ottimizzazioni Mobile */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1e1e1e; color: white; margin: 0; padding: 10px; user-select: none; -webkit-user-select: none; }
         h1 { text-align: center; color: #4facfe; font-size: 1.5em; margin-bottom: 5px;}
         
@@ -28,7 +28,7 @@ const htmlContent = `
         th, td { padding: 10px 5px; text-align: center; border: 1px solid #444; }
         th { background-color: #333; font-size: 1em; }
         
-        /* Nuovi Pulsanti Nativi per Mobile */
+        /* Pulsanti Nativi per Mobile */
         .action-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; touch-action: manipulation; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
         .action-btn:active { transform: scale(0.95); }
         .readonly-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0.9; }
@@ -37,6 +37,7 @@ const htmlContent = `
         .bg-green { background-color: #388e3c; color: white; }
         .bg-dark { background-color: #444; color: #888; border: 1px solid #555; }
         
+        /* Font grandezze Timer */
         .text-green { color: #4caf50; font-weight: bold; font-size: 2.2em;}
         .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 2.2em;}
         .text-red { color: #f44336; font-weight: bold; font-size: 2.2em;}
@@ -46,7 +47,7 @@ const htmlContent = `
         .room-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; width: 100%; max-width: 400px;}
         .btn-room { background: #333; border: 2px solid #4facfe; color: white; padding: 20px 10px; font-size: 1.8em; border-radius: 8px; cursor: pointer; touch-action: manipulation;}
         
-        #pin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+        #pin-modal, #timer-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
         .pin-box { background: #2b2b2b; padding: 25px; border-radius: 10px; text-align: center; border: 2px solid #4facfe; width: 90%; max-width: 320px; box-sizing: border-box;}
         .modal-input { font-size: 1.2em; padding: 12px; width: 100%; text-align: center; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;}
         #pin-input { letter-spacing: 10px; font-weight: bold; }
@@ -62,6 +63,7 @@ const htmlContent = `
         <span id="conn-text">Disconnesso</span>
     </div>
 
+    <!-- Modale Inserimento PIN -->
     <div id="pin-modal">
         <div class="pin-box">
             <h2 style="margin-top: 0;">Sala <span id="pin-room-display"></span></h2>
@@ -73,6 +75,18 @@ const htmlContent = `
         </div>
     </div>
 
+    <!-- Modale Modifica Timer -->
+    <div id="timer-modal">
+        <div class="pin-box">
+            <h2 style="margin-top: 0;">Modifica Timer <span id="timer-room-display"></span></h2>
+            <p style="color: #ccc; font-size: 0.9em; margin-bottom: 15px;">Inserisci i minuti rimanenti (es. 50 per 50 minuti)</p>
+            <input type="number" id="timer-input" class="modal-input" inputmode="numeric" placeholder="Minuti">
+            <button class="pin-btn btn-confirm" onclick="confirmTimer()">Aggiorna Timer</button>
+            <button class="pin-btn btn-cancel" onclick="closeTimerModal()">Annulla</button>
+        </div>
+    </div>
+
+    <!-- Schermata Login -->
     <div id="login-overlay">
         <h1>Dashboard Sale Operatorie</h1>
         <button class="btn-login" onclick="selectRole('ALL')">📺 Monitor Generale (Sola Lettura)</button>
@@ -80,6 +94,7 @@ const htmlContent = `
         <div class="room-grid" id="room-buttons"></div>
     </div>
 
+    <!-- Dashboard Principale -->
     <div id="main-content" style="display: none;">
         <h1 id="main-title">Status Sale</h1>
         <table id="main-table">
@@ -88,15 +103,14 @@ const htmlContent = `
                     <th style="width: 20%;">Sala / Nurse</th>
                     <th style="width: 30%;">Intervento</th>
                     <th style="width: 15%;">Timer</th>
-                    <th style="width: 17.5%;">Anestesista</th>
-                    <th style="width: 17.5%;">Chirurgo</th>
+                    <th style="width: 17.5%;">Paziente in sala</th>
+                    <th style="width: 17.5%;">Paziente pronto</th>
                 </tr>
             </thead>
             <tbody id="table-body"></tbody>
         </table>
     </div>
 
-    <!-- Sostituito il link locale con una CDN globale infallibile -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         const socket = io();
@@ -120,6 +134,7 @@ const htmlContent = `
         });
 
         let pendingRoom = null; 
+        let pendingTimerRoom = null;
 
         const grid = document.getElementById('room-buttons');
         rooms.forEach(room => {
@@ -147,6 +162,27 @@ const htmlContent = `
             } else {
                 document.getElementById('pin-error').style.display = 'block';
                 document.getElementById('pin-input').value = '';
+            }
+        }
+
+        function openTimerModal(room) {
+            pendingTimerRoom = room;
+            document.getElementById('timer-room-display').innerText = room;
+            document.getElementById('timer-input').value = '';
+            document.getElementById('timer-modal').style.display = 'flex';
+            document.getElementById('timer-input').focus();
+        }
+
+        function closeTimerModal() { 
+            document.getElementById('timer-modal').style.display = 'none'; 
+            pendingTimerRoom = null; 
+        }
+
+        function confirmTimer() {
+            const mins = parseInt(document.getElementById('timer-input').value);
+            if (!isNaN(mins)) {
+                socket.emit('action', { room: pendingTimerRoom, action: 'setTimer', value: mins * 60 });
+                closeTimerModal();
             }
         }
 
@@ -190,7 +226,7 @@ const htmlContent = `
                 const tr = document.createElement('tr');
                 const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-size: 0.8em; font-style: italic;">Assente</span>';
                 
-                // Cella Sala/Nurse - Font della Sala notevolmente ingrandito
+                // Cella Sala/Nurse - Font della Sala ingrandito (1.8em)
                 tr.innerHTML += \`<td><div style="font-size: 1.8em; font-weight: bold;">Sala \${room}</div><div style="font-size: 1.1em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
                 
                 // Bottone Intervento
@@ -202,14 +238,22 @@ const htmlContent = `
                     tr.innerHTML += \`<td><button class="action-btn \${intClass}" onclick="toggleIntervention('\${room}')">\${intText}</button></td>\`;
                 }
                 
-                // Cella Timer
+                // Cella Timer con possibilità di modifica manuale
                 if (s.inProgress || s.timerValue === 3600) {
-                    tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2.2em;">--:--</div></td>\`;
+                    if (isReadonly) {
+                        tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2.2em;">--:--</div></td>\`;
+                    } else {
+                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="font-size: 2.2em; border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')">--:--</button></td>\`;
+                    }
                 } else {
-                    tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
+                    if (isReadonly) {
+                        tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
+                    } else {
+                        tr.innerHTML += \`<td><button class="action-btn bg-dark" style="border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')"><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></button></td>\`;
+                    }
                 }
                 
-                // Bottone Anestesista
+                // Bottone Paziente in sala (nessun testo, diventa rosso fuoco quando attivo)
                 const anesClass = s.alertAnes ? 'bg-red' : 'bg-dark';
                 const anesText = '';
                 if (isReadonly) {
@@ -218,7 +262,7 @@ const htmlContent = `
                     tr.innerHTML += \`<td><button class="action-btn \${anesClass}" onclick="toggleAlert('\${room}', 'anes')">\${anesText}</button></td>\`;
                 }
                 
-                // Bottone Chirurgo
+                // Bottone Paziente pronto (nessun testo, diventa rosso fuoco quando attivo)
                 const surgClass = s.alertSurg ? 'bg-red' : 'bg-dark';
                 const surgText = '';
                 if (isReadonly) {
@@ -238,7 +282,7 @@ const htmlContent = `
 // Rotta principale: mostra la dashboard
 app.get('/', (req, res) => { res.send(htmlContent); });
 
-// "Salvagente": se il browser cerca /index.html o altri percorsi strani, lo rimandiamo alla rotta principale
+// Salvagente: rimanda sempre alla dashboard per evitare errori 404
 app.get('*', (req, res) => { res.redirect('/'); });
 
 const rooms = ['A', 'B', 'C', 'D', 'E', 'F', '1', '2'];
@@ -269,6 +313,9 @@ io.on('connection', (socket) => {
             roomsState[room].alertSurg = !roomsState[room].alertSurg;
         } else if (action === 'updateNurse') {
             roomsState[room].nurse = value;
+        } else if (action === 'setTimer') {
+            roomsState[room].timerValue = value;
+            roomsState[room].inProgress = false; // Forza l'inizio del countdown
         }
         io.emit('updateState', roomsState);
     });
