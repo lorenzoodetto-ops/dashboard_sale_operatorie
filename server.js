@@ -37,9 +37,9 @@ const htmlContent = `
         .bg-green { background-color: #388e3c; color: white; }
         .bg-dark { background-color: #444; color: #888; border: 1px solid #555; }
         
-        .text-green { color: #4caf50; font-weight: bold; font-size: 1.4em;}
-        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 1.4em;}
-        .text-red { color: #f44336; font-weight: bold; font-size: 1.4em;}
+        .text-green { color: #4caf50; font-weight: bold; font-size: 2.2em;}
+        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 2.2em;}
+        .text-red { color: #f44336; font-weight: bold; font-size: 2.2em;}
         
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1e1e; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
         .btn-login { background: #4facfe; color: white; border: none; padding: 15px; width: 100%; max-width: 300px; margin: 10px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; touch-action: manipulation;}
@@ -96,7 +96,8 @@ const htmlContent = `
         </table>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Sostituito il link locale con una CDN globale infallibile -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         const socket = io();
         let state = {};
@@ -203,14 +204,14 @@ const htmlContent = `
                 
                 // Cella Timer
                 if (s.inProgress || s.timerValue === 3600) {
-                    tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 1.2em;">--:--</div></td>\`;
+                    tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2.2em;">--:--</div></td>\`;
                 } else {
                     tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
                 }
                 
                 // Bottone Anestesista
                 const anesClass = s.alertAnes ? 'bg-red' : 'bg-dark';
-                const anesText = s.alertAnes ? 'SOS' : 'OK';
+                const anesText = '';
                 if (isReadonly) {
                     tr.innerHTML += \`<td><div class="readonly-btn \${anesClass}">\${anesText}</div></td>\`;
                 } else {
@@ -219,7 +220,7 @@ const htmlContent = `
                 
                 // Bottone Chirurgo
                 const surgClass = s.alertSurg ? 'bg-red' : 'bg-dark';
-                const surgText = s.alertSurg ? 'SOS' : 'OK';
+                const surgText = '';
                 if (isReadonly) {
                     tr.innerHTML += \`<td><div class="readonly-btn \${surgClass}">\${surgText}</div></td>\`;
                 } else {
@@ -234,7 +235,11 @@ const htmlContent = `
 </html>
 `;
 
+// Rotta principale: mostra la dashboard
 app.get('/', (req, res) => { res.send(htmlContent); });
+
+// "Salvagente": se il browser cerca /index.html o altri percorsi strani, lo rimandiamo alla rotta principale
+app.get('*', (req, res) => { res.redirect('/'); });
 
 const rooms = ['A', 'B', 'C', 'D', 'E', 'F', '1', '2'];
 let roomsState = {};
