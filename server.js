@@ -11,64 +11,86 @@ const htmlContent = `
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Status Sale Operatorie</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1e1e1e; color: white; margin: 0; padding: 20px; }
-        h1 { text-align: center; color: #4facfe; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #2b2b2b; }
-        th, td { padding: 15px; text-align: center; border: 1px solid #444; }
-        th { background-color: #333; font-size: 1.1em; }
-        .clickable { cursor: pointer; transition: 0.2s; font-weight: bold; }
-        .clickable:hover { filter: brightness(1.2); }
+        /* Ottimizzazioni Mobile: Niente zoom accidentale, niente selezione testo */
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1e1e1e; color: white; margin: 0; padding: 10px; user-select: none; -webkit-user-select: none; }
+        h1 { text-align: center; color: #4facfe; font-size: 1.5em; margin-bottom: 5px;}
+        
+        /* Pallino di Connessione */
+        #connection-status { position: fixed; top: 10px; right: 10px; display: flex; align-items: center; font-size: 0.9em; font-weight: bold; background: #333; padding: 5px 10px; border-radius: 20px; z-index: 5000;}
+        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .dot-green { background-color: #4caf50; box-shadow: 0 0 8px #4caf50;}
+        .dot-red { background-color: #f44336; box-shadow: 0 0 8px #f44336;}
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #2b2b2b; }
+        th, td { padding: 10px 5px; text-align: center; border: 1px solid #444; }
+        th { background-color: #333; font-size: 1em; }
+        
+        /* Nuovi Pulsanti Nativi per Mobile */
+        .action-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; touch-action: manipulation; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+        .action-btn:active { transform: scale(0.95); }
+        .readonly-btn { width: 100%; height: 60px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0.9; }
+        
         .bg-red { background-color: #d32f2f; color: white; }
         .bg-green { background-color: #388e3c; color: white; }
-        .bg-dark { background-color: #444; color: #888; }
-        .text-green { color: #4caf50; font-weight: bold; font-size: 1.2em;}
-        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 1.2em;}
-        .text-red { color: #f44336; font-weight: bold; font-size: 1.2em;}
+        .bg-dark { background-color: #444; color: #888; border: 1px solid #555; }
         
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1e1e; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-login { background: #4facfe; color: white; border: none; padding: 15px 30px; margin: 10px; font-size: 1.2em; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .room-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
-        .btn-room { background: #333; border: 2px solid #4facfe; color: white; padding: 20px; font-size: 1.5em; border-radius: 8px; cursor: pointer; }
-        .readonly { cursor: not-allowed; opacity: 0.9; }
-
-        #pin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
-        .pin-box { background: #2b2b2b; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #4facfe; width: 300px;}
-        .modal-input { font-size: 1.2em; padding: 10px; width: 80%; text-align: center; margin-bottom: 15px; border-radius: 5px; border: none; }
-        #pin-input { letter-spacing: 5px; font-weight: bold; }
-        .pin-btn { font-size: 1.1em; padding: 10px 15px; margin: 5px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+        .text-green { color: #4caf50; font-weight: bold; font-size: 1.4em;}
+        .text-yellow { color: #ffeb3b; font-weight: bold; font-size: 1.4em;}
+        .text-red { color: #f44336; font-weight: bold; font-size: 1.4em;}
+        
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1e1e; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
+        .btn-login { background: #4facfe; color: white; border: none; padding: 15px; width: 100%; max-width: 300px; margin: 10px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; touch-action: manipulation;}
+        .room-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; width: 100%; max-width: 400px;}
+        .btn-room { background: #333; border: 2px solid #4facfe; color: white; padding: 20px 10px; font-size: 1.3em; border-radius: 8px; cursor: pointer; touch-action: manipulation;}
+        
+        #pin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+        .pin-box { background: #2b2b2b; padding: 25px; border-radius: 10px; text-align: center; border: 2px solid #4facfe; width: 90%; max-width: 320px; box-sizing: border-box;}
+        .modal-input { font-size: 1.2em; padding: 12px; width: 100%; text-align: center; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;}
+        #pin-input { letter-spacing: 10px; font-weight: bold; }
+        .pin-btn { font-size: 1.1em; padding: 12px; margin: 5px 0; width: 100%; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; touch-action: manipulation;}
         .btn-confirm { background: #388e3c; color: white; }
         .btn-cancel { background: #d32f2f; color: white; }
     </style>
 </head>
 <body>
+
+    <div id="connection-status">
+        <span id="conn-dot" class="dot dot-red"></span>
+        <span id="conn-text">Disconnesso</span>
+    </div>
+
     <div id="pin-modal">
         <div class="pin-box">
-            <h2>Sblocca Sala <span id="pin-room-display"></span></h2>
+            <h2 style="margin-top: 0;">Sala <span id="pin-room-display"></span></h2>
             <input type="text" id="nurse-name-input" class="modal-input" placeholder="Tuo Nome (Nurse)" autocomplete="off">
-            <br>
             <input type="password" id="pin-input" class="modal-input" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="PIN">
-            <br>
-            <button class="pin-btn btn-confirm" onclick="verifyPin()">Entra</button>
+            <button class="pin-btn btn-confirm" onclick="verifyPin()">Entra in Sala</button>
             <button class="pin-btn btn-cancel" onclick="closePinModal()">Annulla</button>
-            <p id="pin-error" style="color: #f44336; display: none; font-weight: bold; margin-top: 15px;">PIN Errato!</p>
+            <p id="pin-error" style="color: #f44336; display: none; font-weight: bold;">PIN Errato!</p>
         </div>
     </div>
 
     <div id="login-overlay">
-        <h1 style="font-size: 2.5em; margin-bottom: 40px;">Dashboard Sale Operatorie</h1>
-        <button class="btn-login" onclick="selectRole('ALL')">📺 Apri come Monitor Generale (Sola Lettura)</button>
-        <h2 style="margin-top: 40px;">Seleziona la tua postazione:</h2>
+        <h1>Dashboard Sale Operatorie</h1>
+        <button class="btn-login" onclick="selectRole('ALL')">📺 Monitor Generale (Sola Lettura)</button>
+        <h2 style="margin-top: 30px; font-size: 1.2em;">Seleziona la tua postazione:</h2>
         <div class="room-grid" id="room-buttons"></div>
     </div>
 
     <div id="main-content" style="display: none;">
-        <h1 id="main-title">Status Sale Operatorie</h1>
+        <h1 id="main-title">Status Sale</h1>
         <table id="main-table">
             <thead>
-                <tr><th>Nome Sala (Nurse)</th><th>Intervento</th><th>Change Over</th><th>Alert Anestesista</th><th>Alert Chirurgo</th></tr>
+                <tr>
+                    <th style="width: 20%;">Sala / Nurse</th>
+                    <th style="width: 30%;">Intervento</th>
+                    <th style="width: 15%;">Timer</th>
+                    <th style="width: 17.5%;">Anestesista</th>
+                    <th style="width: 17.5%;">Chirurgo</th>
+                </tr>
             </thead>
             <tbody id="table-body"></tbody>
         </table>
@@ -86,6 +108,16 @@ const htmlContent = `
             'E': '5555', 'F': '6666', '1': '7777', '2': '8888'
         };
 
+        // Gestione indicatore connessione
+        socket.on('connect', () => {
+            document.getElementById('conn-dot').className = 'dot dot-green';
+            document.getElementById('conn-text').innerText = 'Online';
+        });
+        socket.on('disconnect', () => {
+            document.getElementById('conn-dot').className = 'dot dot-red';
+            document.getElementById('conn-text').innerText = 'Offline...';
+        });
+
         let pendingRoom = null; 
 
         const grid = document.getElementById('room-buttons');
@@ -100,7 +132,6 @@ const htmlContent = `
             document.getElementById('nurse-name-input').value = '';
             document.getElementById('pin-input').value = '';
             document.getElementById('pin-modal').style.display = 'flex';
-            document.getElementById('nurse-name-input').focus();
         }
 
         function closePinModal() { document.getElementById('pin-modal').style.display = 'none'; pendingRoom = null; }
@@ -115,11 +146,8 @@ const htmlContent = `
             } else {
                 document.getElementById('pin-error').style.display = 'block';
                 document.getElementById('pin-input').value = '';
-                document.getElementById('pin-input').focus();
             }
         }
-
-        document.getElementById('pin-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyPin(); });
 
         function selectRole(role) {
             myRole = role;
@@ -159,26 +187,44 @@ const htmlContent = `
             roomsToShow.forEach(room => {
                 const s = state[room];
                 const tr = document.createElement('tr');
-                const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-style: italic;">Non assegnato</span>';
+                const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-size: 0.8em; font-style: italic;">Assente</span>';
                 
-                tr.innerHTML += \`<td><strong>Sala \${room}</strong><br><br><div style="font-size: 1.2em; color: #4facfe; font-weight: bold;">\${nurseNameDisplay}</div></td>\`;
+                // Cella Sala/Nurse
+                tr.innerHTML += \`<td><div style="font-size: 1.2em; font-weight: bold;">\${room}</div><div style="font-size: 0.9em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
                 
+                // Bottone Intervento
                 const intClass = s.inProgress ? 'bg-green' : 'bg-red';
-                const clickClass = isReadonly ? 'readonly' : 'clickable';
+                const intText = s.inProgress ? 'IN CORSO' : 'NON IN CORSO';
+                if (isReadonly) {
+                    tr.innerHTML += \`<td><div class="readonly-btn \${intClass}">\${intText}</div></td>\`;
+                } else {
+                    tr.innerHTML += \`<td><button class="action-btn \${intClass}" onclick="toggleIntervention('\${room}')">\${intText}</button></td>\`;
+                }
                 
-                tr.innerHTML += \`<td class="\${clickClass} \${intClass}" \${isReadonly ? '' : \`onclick="toggleIntervention('\${room}')"\`}>\${s.inProgress ? 'IN CORSO' : 'NON IN CORSO'}</td>\`;
-                
+                // Cella Timer
                 if (s.inProgress || s.timerValue === 3600) {
-                    tr.innerHTML += \`<td class="bg-dark">--:--</td>\`;
+                    tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 1.2em;">--:--</div></td>\`;
                 } else {
                     tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
                 }
                 
+                // Bottone Anestesista
                 const anesClass = s.alertAnes ? 'bg-red' : 'bg-dark';
-                tr.innerHTML += \`<td class="\${clickClass} \${anesClass}" \${isReadonly ? '' : \`onclick="toggleAlert('\${room}', 'anes')"\`}>\${s.alertAnes ? 'CHIAMATO' : 'Spento'}</td>\`;
+                const anesText = s.alertAnes ? 'SOS' : 'OK';
+                if (isReadonly) {
+                    tr.innerHTML += \`<td><div class="readonly-btn \${anesClass}">\${anesText}</div></td>\`;
+                } else {
+                    tr.innerHTML += \`<td><button class="action-btn \${anesClass}" onclick="toggleAlert('\${room}', 'anes')">\${anesText}</button></td>\`;
+                }
                 
+                // Bottone Chirurgo
                 const surgClass = s.alertSurg ? 'bg-red' : 'bg-dark';
-                tr.innerHTML += \`<td class="\${clickClass} \${surgClass}" \${isReadonly ? '' : \`onclick="toggleAlert('\${room}', 'surg')"\`}>\${s.alertSurg ? 'CHIAMATO' : 'Spento'}</td>\`;
+                const surgText = s.alertSurg ? 'SOS' : 'OK';
+                if (isReadonly) {
+                    tr.innerHTML += \`<td><div class="readonly-btn \${surgClass}">\${surgText}</div></td>\`;
+                } else {
+                    tr.innerHTML += \`<td><button class="action-btn \${surgClass}" onclick="toggleAlert('\${room}', 'surg')">\${surgText}</button></td>\`;
+                }
                 
                 tbody.appendChild(tr);
             });
