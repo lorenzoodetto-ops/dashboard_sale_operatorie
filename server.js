@@ -97,6 +97,9 @@ const htmlContent = `
     <!-- Dashboard Principale -->
     <div id="main-content" style="display: none;">
         <h1 id="main-title">Status Sale</h1>
+        <!-- Aggiunto display Data e Ora -->
+        <div id="datetime-display" style="text-align: center; color: #aaa; font-size: 1.1em; margin-bottom: 15px; font-weight: bold;"></div>
+        
         <table id="main-table">
             <thead>
                 <tr>
@@ -122,6 +125,23 @@ const htmlContent = `
             'A': '1111', 'B': '2222', 'C': '3333', 'D': '4444',
             'E': '5555', 'F': '6666', '1': '7777', '2': '8888'
         };
+
+        // Funzione per aggiornare Orologio e Data
+        function updateClock() {
+            const now = new Date();
+            const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            let dateStr = now.toLocaleDateString('it-IT', optionsDate);
+            // Capitalizza la prima lettera del giorno
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const dtElement = document.getElementById('datetime-display');
+            if (dtElement) {
+                dtElement.innerText = \`\${dateStr} - \${timeStr}\`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Chiama subito per evitare il secondo di ritardo
 
         // Gestione indicatore connessione
         socket.on('connect', () => {
@@ -181,6 +201,7 @@ const htmlContent = `
         function confirmTimer() {
             const mins = parseInt(document.getElementById('timer-input').value);
             if (!isNaN(mins)) {
+                // Invia i minuti convertiti in secondi al server
                 socket.emit('action', { room: pendingTimerRoom, action: 'setTimer', value: mins * 60 });
                 closeTimerModal();
             }
@@ -226,7 +247,7 @@ const htmlContent = `
                 const tr = document.createElement('tr');
                 const nurseNameDisplay = s.nurse ? s.nurse : '<span style="color: #888; font-size: 0.8em; font-style: italic;">Assente</span>';
                 
-                // Cella Sala/Nurse - Font della Sala ingrandito (1.8em)
+                // Cella Sala/Nurse
                 tr.innerHTML += \`<td><div style="font-size: 1.8em; font-weight: bold;">Sala \${room}</div><div style="font-size: 1.1em; color: #4facfe; margin-top: 5px;">\${nurseNameDisplay}</div></td>\`;
                 
                 // Bottone Intervento
@@ -238,22 +259,24 @@ const htmlContent = `
                     tr.innerHTML += \`<td><button class="action-btn \${intClass}" onclick="toggleIntervention('\${room}')">\${intText}</button></td>\`;
                 }
                 
-                // Cella Timer con possibilità di modifica manuale
+                // Cella Timer
                 if (s.inProgress || s.timerValue === 3600) {
                     if (isReadonly) {
                         tr.innerHTML += \`<td><div class="readonly-btn bg-dark" style="font-size: 2.2em;">--:--</div></td>\`;
                     } else {
+                        // Diventa cliccabile
                         tr.innerHTML += \`<td><button class="action-btn bg-dark" style="font-size: 2.2em; border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')">--:--</button></td>\`;
                     }
                 } else {
                     if (isReadonly) {
                         tr.innerHTML += \`<td><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></td>\`;
                     } else {
+                        // Diventa cliccabile
                         tr.innerHTML += \`<td><button class="action-btn bg-dark" style="border: 1px solid #555; width: 100%;" onclick="openTimerModal('\${room}')"><span class="\${getTimerClass(s.timerValue)}">\${formatTime(s.timerValue)}</span></button></td>\`;
                     }
                 }
                 
-                // Bottone Paziente in sala (nessun testo, diventa rosso fuoco quando attivo)
+                // Bottone Paziente in sala (ex Anestesista)
                 const anesClass = s.alertAnes ? 'bg-red' : 'bg-dark';
                 const anesText = '';
                 if (isReadonly) {
@@ -262,7 +285,7 @@ const htmlContent = `
                     tr.innerHTML += \`<td><button class="action-btn \${anesClass}" onclick="toggleAlert('\${room}', 'anes')">\${anesText}</button></td>\`;
                 }
                 
-                // Bottone Paziente pronto (nessun testo, diventa rosso fuoco quando attivo)
+                // Bottone Paziente pronto (ex Chirurgo)
                 const surgClass = s.alertSurg ? 'bg-red' : 'bg-dark';
                 const surgText = '';
                 if (isReadonly) {
@@ -315,7 +338,7 @@ io.on('connection', (socket) => {
             roomsState[room].nurse = value;
         } else if (action === 'setTimer') {
             roomsState[room].timerValue = value;
-            roomsState[room].inProgress = false; // Forza l'inizio del countdown
+            roomsState[room].inProgress = false; // Forza l'inizio del countdown se settato manualmente
         }
         io.emit('updateState', roomsState);
     });
